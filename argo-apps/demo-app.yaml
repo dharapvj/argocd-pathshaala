@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: raw-manifest-app
+  namespace: argocd  # MANDATORY
+spec:
+  destination:
+    name: ''
+    namespace: demoapp
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: demo-apps
+    repoURL: 'https://github.com/dharapvj/argocd-pathshaala.git'
+    targetRevision: HEAD
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: helm-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://dharapvj.github.io/argocd-promotions-demo/
+    chart: argo-demo-app
+    targetRevision: 0.1.*
+    helm:
+      parameters:
+        - name: ingressSuffix
+          value: dev
+        - name: appMessage
+          value: "This is Dev App deployed via Helm!"
+        - name: titlePrefix
+          value: "helm - dev -"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated: {}
+---
