@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-app0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msg-label0
+  template:
+    metadata:
+      labels:
+        app: msg-label0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "3000"
+    spec:
+      containers: 
+      - name: node-bgcolor
+        image: dharapvj/bgcolor-text-demo:1.2
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MESSAGE
+          value: "Kubernetes on autopilot"
+        - name: BGCOLOR
+          value: "cornflowerblue"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app-svc
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: msg-label0
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-app-ing
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: demo-app.dreamit.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: test-app-svc
+                port:
+                  number: 3000
